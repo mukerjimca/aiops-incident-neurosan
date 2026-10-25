@@ -2,5 +2,3 @@
 .venv/
 logs/
 __pycache__/
-nss_local.db
-API Key.txt
