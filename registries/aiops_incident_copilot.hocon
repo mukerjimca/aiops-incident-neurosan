@@ -3,8 +3,9 @@
 # Uses ONLY synthetic sample data. No client data. No API keys in this file.
 {
     "llm_config": {
-        "model_name": "gemini-3-flash"
-    },
+        "class": "openrouter",
+        "model_name": "nvidia/nemotron-3-ultra-550b-a55b:free"
+    }
     "max_iterations": 40,
     "metadata": {
         "description": "Multi-agent AIOps copilot that triages an IT incident, finds probable root cause, recommends a runbook-grounded fix and validates it before any action (human-in-the-loop).",

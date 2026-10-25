@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "langchain-openrouter>=0.2.9",
     "neuro-san-studio>=0.4.3",
     "pip-system-certs>=5.3",
 ]
