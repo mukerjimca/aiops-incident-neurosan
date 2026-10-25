@@ -1,0 +1,10 @@
+[
+ {"runbook_id": "RB-CPU-01", "title": "High CPU on Azure VM", "keywords": "cpu high process iis worker batch", "risk": "Low", "change_request_required": false,
+  "steps": ["Check Azure Monitor CPU metric for last 1 hour", "RDP/Bastion to VM and identify top process in Task Manager", "If IIS worker: recycle the application pool (not the whole server)", "Monitor CPU for 15 minutes", "If still above 90%, escalate to L2 and consider scale-up via change request"]},
+ {"runbook_id": "RB-DISK-01", "title": "Low disk space on VM", "keywords": "disk full space storage logs drive", "risk": "Low", "change_request_required": false,
+  "steps": ["Check free space in Azure Monitor / Log Analytics", "Run Disk Cleanup and clear temp folders", "Archive IIS/app logs older than 30 days to storage account", "Confirm free space above 20%", "Raise problem ticket to enable log rotation"]},
+ {"runbook_id": "RB-CERT-01", "title": "Expired TLS certificate on Application Gateway", "keywords": "certificate tls ssl expired 502 gateway probe key vault", "risk": "Medium", "change_request_required": true,
+  "steps": ["Confirm certificate expiry date in Key Vault", "Renew or import the new certificate in Key Vault", "Update Application Gateway listener to new certificate version", "Verify backend health probe is Healthy", "Test website and close incident"]},
+ {"runbook_id": "RB-SQL-01", "title": "Azure SQL performance degradation", "keywords": "sql database slow dtu blocking query index", "risk": "Medium", "change_request_required": true,
+  "steps": ["Check DTU/CPU in Azure portal and Query Performance Insight", "Identify blocking session (sys.dm_exec_requests)", "Inform DBA; kill blocking session only with DBA approval", "Apply recommended index through change request", "Monitor DTU for 30 minutes"]}
+]

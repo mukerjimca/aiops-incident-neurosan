@@ -1,0 +1,172 @@
+# AIOps Incident Copilot - Neuro SAN multi-agent network
+# Track 2: Vibe Coding + Grounding. Grounded on a local runbook / CMDB knowledge base.
+# Uses ONLY synthetic sample data. No client data. No API keys in this file.
+{
+    "llm_config": {
+        "model_name": "gemini-3-flash"
+    },
+    "max_iterations": 40,
+    "metadata": {
+        "description": "Multi-agent AIOps copilot that triages an IT incident, finds probable root cause, recommends a runbook-grounded fix and validates it before any action (human-in-the-loop).",
+        "tags": ["aiops", "incident", "azure", "grounding", "hackathon"]
+    },
+    "commondefs": {
+        "replacement_strings": {
+            "grounding_rule": "Use ONLY facts returned by tools. If a tool returns nothing, say 'Not found in knowledge base' - never invent runbooks, servers or commands."
+        }
+    },
+    "tools": [
+        {
+            "name": "incident_commander",
+            "function": {
+                "description": "I am the AIOps Incident Copilot. Describe an IT incident or alert (e.g. 'VM vm-web-01 CPU 98% for 20 min') and I will triage it, find the probable root cause and give a validated, runbook-grounded remediation plan."
+            },
+            "instructions": """
+You are the Incident Commander of an AIOps team. You coordinate specialist agents.
+For every incident the user reports:
+1. Call triage_agent to classify severity, category and impacted CI.
+2. Call rca_agent with the incident text and triage result to get the probable root cause.
+3. Call remediation_agent with the root cause to get runbook-based fix steps.
+4. Call validation_agent with the full proposal. If it says REJECT, explain why and ask the user for more details.
+Then answer in this format:
+- Incident Summary
+- Severity & Category
+- Impacted CI (from CMDB)
+- Probable Root Cause (with confidence High/Medium/Low)
+- Recommended Runbook & Steps
+- Validation Verdict (APPROVE / NEEDS HUMAN APPROVAL / REJECT)
+- Next action for the on-call engineer
+Never execute changes yourself. Production changes always need human approval.
+grounding_rule
+""",
+            "tools": ["triage_agent", "rca_agent", "remediation_agent", "validation_agent"]
+        },
+        {
+            "name": "triage_agent",
+            "function": {
+                "description": "Classifies an incident: severity (P1-P4), category and impacted configuration item.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "incident": {"type": "string", "description": "Incident or alert text."}
+                    },
+                    "required": ["incident"]
+                }
+            },
+            "instructions": """
+You are an L1 triage engineer. Identify the server/service name in the incident and call cmdb_lookup with it.
+Assign severity: P1 = production outage / business critical down, P2 = production degraded,
+P3 = non-production or single user, P4 = informational.
+Use the CMDB criticality to adjust severity. Category is one of: Compute, Storage, Network, Database, Application, Security.
+Return: severity, category, CI details, and a one-line reason.
+grounding_rule
+""",
+            "tools": ["cmdb_lookup"]
+        },
+        {
+            "name": "rca_agent",
+            "function": {
+                "description": "Finds the probable root cause of an incident using past incident history.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "incident": {"type": "string", "description": "Incident text plus triage result."}
+                    },
+                    "required": ["incident"]
+                }
+            },
+            "instructions": """
+You are an SRE doing root cause analysis. Call incident_history_search with the key symptoms
+(e.g. 'cpu', 'disk full', 'certificate expired'). Compare with similar past incidents.
+Return the probable root cause, the matching past incident IDs, and a confidence level:
+High = strong match in history, Medium = partial match, Low = no match (then say clearly that a human must investigate).
+grounding_rule
+""",
+            "tools": ["incident_history_search"]
+        },
+        {
+            "name": "remediation_agent",
+            "function": {
+                "description": "Recommends remediation steps from the approved runbook library.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "root_cause": {"type": "string", "description": "Probable root cause and category."}
+                    },
+                    "required": ["root_cause"]
+                }
+            },
+            "instructions": """
+You are a remediation specialist. Call runbook_lookup with keywords from the root cause.
+Return the runbook ID, title, step-by-step actions exactly as stored, the risk level, and whether it needs a change request.
+If no runbook matches, say 'No approved runbook - escalate to L3'. Do NOT write your own commands.
+grounding_rule
+""",
+            "tools": ["runbook_lookup"]
+        },
+        {
+            "name": "validation_agent",
+            "function": {
+                "description": "Validates the proposed remediation for safety, grounding and approval needs before any action.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "proposal": {"type": "string", "description": "Triage, root cause and remediation proposal."}
+                    },
+                    "required": ["proposal"]
+                }
+            },
+            "instructions": """
+You are the AI safety and change-control reviewer. Check the proposal:
+1. Is every step taken from an approved runbook (has a runbook ID)? If not -> REJECT.
+2. Is RCA confidence Low? -> NEEDS HUMAN APPROVAL.
+3. Is the CI production AND runbook risk Medium/High, or a change request is required? -> NEEDS HUMAN APPROVAL.
+4. Any destructive action (delete, format, drop, restart of a P1 database) -> NEEDS HUMAN APPROVAL.
+5. Otherwise -> APPROVE.
+Return the verdict and a short list of reasons.
+"""
+        },
+        {
+            "name": "cmdb_lookup",
+            "function": {
+                "description": "Looks up a configuration item (server/service) in the CMDB.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "ci_name": {"type": "string", "description": "Server or service name, e.g. vm-web-01."}
+                    },
+                    "required": ["ci_name"]
+                }
+            },
+            "class": "aiops_incident_copilot.kb_tools.CmdbLookup"
+        },
+        {
+            "name": "incident_history_search",
+            "function": {
+                "description": "Searches past resolved incidents by symptom keywords.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "query": {"type": "string", "description": "Symptom keywords."}
+                    },
+                    "required": ["query"]
+                }
+            },
+            "class": "aiops_incident_copilot.kb_tools.IncidentHistorySearch"
+        },
+        {
+            "name": "runbook_lookup",
+            "function": {
+                "description": "Searches the approved runbook library by keywords.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "query": {"type": "string", "description": "Root cause keywords."}
+                    },
+                    "required": ["query"]
+                }
+            },
+            "class": "aiops_incident_copilot.kb_tools.RunbookLookup"
+        }
+    ]
+}

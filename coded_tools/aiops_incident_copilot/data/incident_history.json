@@ -1,0 +1,8 @@
+[
+ {"id": "INC-1001", "symptom": "high cpu 95% on web vm", "root_cause": "Runaway IIS worker process after deployment memory leak", "fix": "RB-CPU-01", "category": "Compute"},
+ {"id": "INC-1002", "symptom": "disk full C drive 99% low disk space", "root_cause": "IIS and application logs not rotated", "fix": "RB-DISK-01", "category": "Storage"},
+ {"id": "INC-1003", "symptom": "website down 502 bad gateway application gateway", "root_cause": "Backend health probe failing - expired TLS certificate", "fix": "RB-CERT-01", "category": "Network"},
+ {"id": "INC-1004", "symptom": "sql database slow high dtu blocking queries", "root_cause": "Missing index causing long-running blocking query", "fix": "RB-SQL-01", "category": "Database"},
+ {"id": "INC-1005", "symptom": "high cpu on app vm scheduled job", "root_cause": "Overlapping scheduled batch jobs", "fix": "RB-CPU-01", "category": "Compute"},
+ {"id": "INC-1006", "symptom": "certificate expired ssl error browser", "root_cause": "TLS certificate not renewed in Key Vault", "fix": "RB-CERT-01", "category": "Security"}
+]

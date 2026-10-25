@@ -1,0 +1,7 @@
+[
+ {"ci_name": "vm-web-01", "type": "Azure VM", "environment": "Production", "criticality": "High", "app": "Customer Portal", "owner_group": "Cloud-Ops"},
+ {"ci_name": "vm-app-02", "type": "Azure VM", "environment": "Production", "criticality": "Medium", "app": "Billing API", "owner_group": "Cloud-Ops"},
+ {"ci_name": "sql-prod-01", "type": "Azure SQL Database", "environment": "Production", "criticality": "Critical", "app": "Orders DB", "owner_group": "DBA"},
+ {"ci_name": "vm-test-05", "type": "Azure VM", "environment": "Test", "criticality": "Low", "app": "QA Sandbox", "owner_group": "Cloud-Ops"},
+ {"ci_name": "appgw-prod", "type": "Azure Application Gateway", "environment": "Production", "criticality": "High", "app": "Customer Portal ingress", "owner_group": "Network"}
+]
